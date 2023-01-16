@@ -5,32 +5,29 @@ Widget::Widget(QWidget *parent)
 	: QWidget(parent)
 	, ui(new Ui::Widget) {
 	ui->setupUi(this);
-	plane1 = new PlanetInf(QString("test"), 0.5, 0, 0, 1.63);
-	plane1->WorkInt();
-	pixmap.fill(Qt::white);
-	ui->label->setPixmap(pixmap);
-	painter.begin(&pixmap);
-	//设置抗锯齿，反走样。如果为false会有锯齿
-	painter.setRenderHint(QPainter::Antialiasing, true);
-	pen.setWidth(2);
-	pen.setColor(Qt::black);
-	painter.setPen(pen);
-	line.setLine(400, 0, 400, 800);
-	painter.drawLine(line);
-	line.setLine(0, 400, 800, 400);
-	painter.drawLine(line);
-	painter.end();
-	ui->label->setPixmap(pixmap);
+	PlanetInit();
+	planeRun->WorkInt();
+	PixmapInit();
 	Timer = new QTimer(this);
 	connect(Timer, &QTimer::timeout, [ = ]() {
-		double x, y;
+		double x, y, r, a;
+		QString strShow;
 		painter.begin(&pixmap);
 		pen.setColor(Qt::red);
 		painter.setPen(pen);
-		plane1->Work(x, y);
-		px = 400 + 200 * x;
-		py = 400 + 200 * y;
-		qDebug() << px << " " << py;
+		for (int i = 0; i < 1000; i++)
+			planeRun->Work(x, y);
+		r = sqrt((x) * (x) + (y) * (y));
+		r = qLn(r + 1) / qLn(51);
+		a = qAtan2(y, x);
+		x = r * qCos(a);
+		y = r * qSin(a);
+		px = 400 + 400 * x;
+		py = 400 + 400 * y;
+		strShow = QString("半径%1 角度%2° 坐标(%3,%4)").arg(r).arg(
+				a / M_PI * 180).arg(
+				px).arg(py);
+		ui->label_2->setText(strShow);
 		painter.drawPoint(px, py);
 		painter.end();
 		ui->label->setPixmap(pixmap);
@@ -44,18 +41,37 @@ Widget::~Widget() {
 
 void Widget::keyPressEvent(QKeyEvent *event) {
 	int key = event->key();
-	painter.begin(&pixmap);
 	if (key == Qt::Key_Space) {
-		pixmap.fill(Qt::white);
-		pen.setWidth(2);
-		pen.setColor(Qt::black);
-		painter.setPen(pen);
-		line.setLine(400, 0, 400, 800);
-		painter.drawLine(line);
-		line.setLine(0, 400, 800, 400);
-		painter.drawLine(line);
+		Timer->stop();
+		while (Timer->isActive());
+		planetFlag = planetFlag < plantMax ? planetFlag + 1 : 0;
+		PlanetInit();
+		PixmapInit();
+		Timer->start(1);
 	}
+}
+
+void Widget::PixmapInit() {
+	QRect rect(0, 0, 200, 80);
+	pixmap.fill(Qt::white);
+	painter.begin(&pixmap);
+	//设置抗锯齿，反走样。如果为false会有锯齿
+	painter.setRenderHint(QPainter::Antialiasing, true);
+	pen.setWidth(2);
+	pen.setColor(Qt::black);
+	painter.setPen(pen);
+	line.setLine(400, 0, 400, 800);
+	painter.drawLine(line);
+	line.setLine(0, 400, 800, 400);
+	painter.drawLine(line);
+	painter.drawText((const QRectF)(rect), planeRun->name);
 	painter.end();
+	ui->label->setPixmap(pixmap);
+}
+
+void Widget::PlanetInit() {
+	planeRun = planes.at(planetFlag);
+	planeRun->WorkInt();
 }
 
 void Widget::paintEvent(QPaintEvent *event) {
