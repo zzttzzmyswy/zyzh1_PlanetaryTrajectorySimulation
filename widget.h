@@ -33,13 +33,7 @@ class PlanetInf {
 	PlanetInf(QString nameIn, double x0In, double y0In,
 		double vx0In, double vy0In, double dtIn)
 		: name(nameIn), x0(x0In), y0(y0In), vx0(vx0In), vy0(vy0In), dt(dtIn) {
-		WorkClear();
-	}
-	void WorkClear(void) {
-		x = x0;
-		x1 = 0;
-		y = y0;
-		y1 = 0;
+		WorkInt();
 	}
 	void WorkInt() {
 		x = x0;
@@ -61,11 +55,11 @@ class PlanetInf {
 	}
 	QString name;
   private:
-	double x0;
+	double x0;/* 起始坐标 */
 	double y0;
-	double vx0;
+	double vx0;/* 其实初速度 */
 	double vy0;
-	double dt;
+	double dt;/* 时间步长 */
 	double x, x1;
 	double y, y1;
 	double r;
@@ -77,7 +71,6 @@ class Widget : public QWidget {
   public:
 	Widget(QWidget *parent = nullptr);
 	~Widget();
-	void paintEvent(QPaintEvent *event);
 	void keyPressEvent(QKeyEvent *event);
 	void PixmapInit(void);
 	void PlanetInit(void);
@@ -119,7 +112,12 @@ class Widget : public QWidget {
 	/* 绘图状态机 */
 	int runState = 0;
 	int px, py;
+	/* 绘制顶层 */
+	QPainter painterTop;
+	QPen penTop;
 	QPixmap pixmap = QPixmap(800, 800);
+	QPixmap pixmapTop = QPixmap(800, 800);
+	QColor colorTop;
 };
 
 
