@@ -42,7 +42,7 @@ Widget::Widget(QWidget *parent)
         ui->label_2->setText(strShow1);
         ui->label_5->setText(strShow2);
         ui->label_6->setText(strShow3);
-        qDebug() << strShow1 << strShow2 << strShow3;
+        /* qDebug() << strShow1 << strShow2 << strShow3; */
         /* 绘制仿真结果 */
 #ifndef TARGET_ARCH_ARM /* 选择绘制连线还是点,arm平台由于仿真精度低所以绘制连线 */
 		painter.drawPoint(px, py);
