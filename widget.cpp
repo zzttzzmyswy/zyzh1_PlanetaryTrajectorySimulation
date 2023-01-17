@@ -9,14 +9,19 @@ Widget::Widget(QWidget *parent)
 	planeRun->WorkInt();
 	PixmapInit();
 	Timer = new QTimer(this);
+    /*使用lambda表达式简化函数调用*/
 	connect(Timer, &QTimer::timeout, [ = ]() {
 		double x, y, r, r0, a;
-		QString strShow;
+        QString strShow1, strShow2, strShow3;
 		painter.begin(&pixmap);
 		pen.setColor(Qt::red);
 		painter.setPen(pen);
 		/* 在不损失仿真精度的前提下一定程度地提高仿真速度 */
-		for (int i = 0; i < 1000; i++)
+#ifndef TARGET_ARCH_ARM
+        for (int i = 0; i < 1000; i++)
+#else
+        for (int i = 0; i < 100; i++)
+#endif
 			planeRun->Work(x, y);
 		/* 对输出的坐标点极坐标化，
 		 * 并且将与太阳的距离对数化，
@@ -27,17 +32,29 @@ Widget::Widget(QWidget *parent)
 		/* 将极坐标转为直角坐标系坐标 */
 		x = r * qCos(a);
 		y = r * qSin(a);
-		px = 400 + 390 * x;
-		py = 400 + 390 * y;
+        px = 250 + 240 * x;
+        py = 250 + 240 * y;
 		/* 显示当前仿真点的数据 */
-		strShow = QString("当前数据:距离%1 角度%2° 坐标(%3,%4)").arg(
-				r0).arg(
-				a / M_PI * 180).arg(
-				px).arg(py);
-		ui->label_2->setText(strShow);
-		qDebug() << strShow;
-		/* 绘制仿真结果点 */
+        strShow1 = QString("距离%1").arg(r0);
+        strShow2 = QString("角度%2°").arg(
+                a / M_PI * 180);
+        strShow3 = QString("坐标(%3,%4)").arg(px - 250).arg(250 - py);
+        ui->label_2->setText(strShow1);
+        ui->label_5->setText(strShow2);
+        ui->label_6->setText(strShow3);
+        qDebug() << strShow1 << strShow2 << strShow3;
+        /* 绘制仿真结果 */
+#ifndef TARGET_ARCH_ARM /* 选择绘制连线还是点,arm平台由于仿真精度低所以绘制连线 */
 		painter.drawPoint(px, py);
+#else
+        if (pxOld == 0) {
+            pxOld = px;
+            pyOld = py;
+        }
+        painter.drawLine(px, py, pxOld, pyOld);
+        pxOld = px;
+        pyOld = py;
+#endif
 		painter.end();
 		/* 开始绘制顶层 */
 		pixmapTop.fill(colorTop);
@@ -82,22 +99,35 @@ void Widget::PixmapInit() {
 	pen.setWidth(2);
 	pen.setColor(Qt::black);
 	painter.setPen(pen);
-	line.setLine(400, 0, 400, 800);
+    line.setLine(250, 0, 250, 500);
 	painter.drawLine(line);
-	line.setLine(0, 400, 800, 400);
+    line.setLine(0, 250, 500, 250);
 	painter.drawLine(line);
 	painter.drawText((const QRectF)(rect), planeRun->name);
 	pen.setColor(Qt::yellow);
 	painter.setPen(pen);
 	painter.setBrush(Qt::yellow);
-	painter.drawEllipse(400 - 10, 400 - 10, 20, 20);
+    painter.drawEllipse(250 - 10, 250 - 10, 20, 20);
 	painter.end();
 	ui->label->setPixmap(pixmap);
 	ui->label_4->setPixmap(pixmapTop);
+    pxOld = 0;
+    pyOld = 0;
 }
 
 void Widget::PlanetInit() {
 	planeRun = planes.at(planetFlag);
 	planeRun->WorkInt();
+}
+
+
+void Widget::on_pushButton_clicked() {
+    /* 切换行星 */
+    Timer->stop();
+    while (Timer->isActive());
+    planetFlag = planetFlag < plantMax ? planetFlag + 1 : 0;
+    PlanetInit();
+    PixmapInit();
+    Timer->start(1);
 }
 
