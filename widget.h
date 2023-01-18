@@ -30,20 +30,24 @@ QT_END_NAMESPACE
 
 class PlanetInf {
   public:
+    /* 初始话行星参数 名字 初始坐标 初始速度 仿真时间步长 */
     PlanetInf(QString nameIn, double x0In, double y0In,
         double vx0In, double vy0In, double dtIn)
         : name(nameIn), x0(x0In), y0(y0In), vx0(vx0In), vy0(vy0In), dt(dtIn) {
         WorkInt();
     }
+    /* 为迭代计算初始化参数 */
     void WorkInt() {
         x = x0;
         y = y0;
         x1 = x0 + dt * vx0;
         y1 = y0 + dt * vy0;
     }
+    /* 进行迭代计算 */
     void Work(double &xout, double &yout) {
         double xOld = x1, yOld = y1;
         r = sqrt((x) * (x) + (y) * (y));
+        /* 由行星运动公式差分获得 */
         x1 = -MY_G * MY_SUN_M * (x) / pow(r, 3) * pow(dt,
                 2) + 2 * (x1) - (x);
         y1 = -MY_G * MY_SUN_M * (y) / pow(r, 3) * pow(dt,
@@ -90,9 +94,6 @@ class Widget : public QWidget {
 
   private:
     Ui::Widget *ui;
-    QPainter painter;
-    QPen pen;
-    QLineF line;
     /* 当前行星编号 */
     int planetFlag = 0;
     const int plantMax = 8;
@@ -144,10 +145,13 @@ class Widget : public QWidget {
     /* 当前绘制的曲线 */
     PlanetInf *planeRun;
     QTimer *Timer;
-    /* 绘图状态机 */
-    int runState = 0;
+    /* 绘制点与连线需要的变量 */
     int px, py, pxOld = 0, pyOld = 0;
-    /* 绘制顶层 */
+    /* 绘制底层需要的对象 */
+    QPainter painter;
+    QPen pen;
+    QLineF line;
+    /* 绘制顶层所需要的对象 */
     QPainter painterTop;
     QPen penTop;
     QPixmap pixmap = QPixmap(500, 500);

@@ -88,6 +88,7 @@ void Widget::keyPressEvent(QKeyEvent *event) {
 	}
 }
 
+/* 初始化坐标系 */
 void Widget::PixmapInit() {
 	QRect rect(0, 0, 200, 80);
 	colorTop.setAlpha(0);
@@ -115,11 +116,11 @@ void Widget::PixmapInit() {
     pyOld = 0;
 }
 
+/* 初始化行星计算资源 */
 void Widget::PlanetInit() {
 	planeRun = planes.at(planetFlag);
 	planeRun->WorkInt();
 }
-
 
 void Widget::on_pushButton_clicked() {
     /* 切换行星 */
